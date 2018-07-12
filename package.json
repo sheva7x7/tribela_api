@@ -1,0 +1,22 @@
+{
+  "name": "tribela_api",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "yarn": "1.5.1"
+  },
+  "author": "Tribela",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "dotenv": "^6.0.0",
+    "express": "^4.16.3",
+    "lodash": "^4.17.10",
+    "moment": "^2.22.2",
+    "multer": "^1.3.1",
+    "pg": "^7.4.3"
+  }
+}
