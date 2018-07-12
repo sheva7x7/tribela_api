@@ -1,5 +1,5 @@
 const usersApi = require('../v1/api/users')
-const campaignsApi = require('../V1/api/campaigns')
+const campaignsApi = require('../v1/api/campaigns')
 
 module.exports = function(app) {
   app.route('/')
