@@ -15,7 +15,7 @@ const createCampaign = (req, res) => {
     }
   })
   const text = `WITH new_campaign AS (INSERT INTO ${schema}.campaigns (title, description, featured_image, 
-    creator, creation_time, expiration_time) VALUES ($1, $2, $3, $4, $5,$6) RETURNING id) INSERT INTO ${schema}.vote_options 
+    creator, creation_time, expiration_time, category) VALUES ($1, $2, $3, $4, $5,$6, $7) RETURNING id) INSERT INTO ${schema}.vote_options 
     (campaign_id, option_no, description, vote_count) VALUES ${optionsText}`
   const values = [
     req.body.campaign.title,
@@ -23,7 +23,8 @@ const createCampaign = (req, res) => {
     req.body.campaign.featured_image,
     req.body.campaign.creator,
     moment().format(),
-    moment(req.body.campaign.expiration_time).format()
+    moment(req.body.campaign.expiration_time).format(),
+    req.body.campaign.category
   ]
   const thenFn = (results) => {
     res.end()
@@ -31,8 +32,69 @@ const createCampaign = (req, res) => {
   const catchFn = (error) => {
     res.status(500).send({message: 'DB error'})
   }
-  console.log(text)
+  db.query(text, values, thenFn, catchFn)
+}
+
+const retrieveCampaignById = (req, res) => {
+  const text = `SELECT * FROM ${schema}.campaigns WHERE id = $1 `
+  const values = [
+    req.params.id
+  ]
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No campaign found'})
+    }
+    else{
+      res.send(results.rows[0])
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const retrieveCampaignOptions = (req, res) => {
+  const text = `SELECT * FROM ${schema}.vote_options WHERE campaign_id = $1 `
+  const values = [
+    req.params.id
+  ]
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No option found'})
+    }
+    else{
+      res.send(results.rows)
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const retriveTrendingCampaigns = (req, res) => {
+  const text = `SELECT campaigns.*, SUM(vote_options.vote_count) AS total_vote_count FROM ${schema}.campaigns AS campaigns 
+  INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id WHERE expiration_time >= CURRENT_TIMESTAMP
+  GROUP BY campaigns.id ORDER BY expiration_time::DATE DESC, (expiration_time - CURRENT_TIMESTAMP) ASC, total_vote_count DESC`
+  const values = [
+    req.params.offset
+  ]
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No option found'})
+    }
+    else{
+      res.send(results.rows)
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
   db.query(text, values, thenFn, catchFn)
 }
 
 exports.createCampaign = createCampaign
+exports.retrieveCampaignById = retrieveCampaignById
+exports.retrieveCampaignOptions = retrieveCampaignOptions
+exports.retriveTrendingCampaigns = retriveTrendingCampaigns

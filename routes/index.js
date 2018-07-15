@@ -15,4 +15,13 @@ module.exports = function(app) {
 
   app.route('/v1/newcampaign')
     .post(campaignsApi.createCampaign)
+
+  app.route('/v1/campaign/:id')
+    .get(campaignsApi.retrieveCampaignById)
+
+  app.route('/v1/campaignoptions')
+    .post(campaignsApi.retrieveCampaignOptions)
+
+  app.route('/v1/trendingcampaigns')
+    .post(campaignsApi.retriveTrendingCampaigns)
 }
