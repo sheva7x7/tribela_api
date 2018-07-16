@@ -78,7 +78,7 @@ const retriveTrendingCampaigns = (req, res) => {
   INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id WHERE expiration_time >= CURRENT_TIMESTAMP
   GROUP BY campaigns.id ORDER BY expiration_time::DATE DESC, (expiration_time - CURRENT_TIMESTAMP) ASC, total_vote_count DESC`
   const values = [
-    req.params.offset
+    // req.params.offset
   ]
   const thenFn = (results) => {
     if (_.isEmpty(results.rows)){
