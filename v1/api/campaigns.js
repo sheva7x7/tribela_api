@@ -37,7 +37,9 @@ const createCampaign = (req, res) => {
 }
 
 const retrieveCampaignById = (req, res) => {
-  const text = `SELECT * FROM ${schema}.campaigns WHERE id = $1 `
+  const text = `SELECT campaigns.*, SUM(vote_options.vote_count) AS total_vote_count, array_to_json(array_agg(vote_options)) AS options 
+  FROM ${schema}.campaigns AS campaigns INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id WHERE 
+  campaigns.id = $1 GROUP BY campaigns.id `
   const values = [
     req.params.id
   ]
