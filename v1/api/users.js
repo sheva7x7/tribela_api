@@ -35,5 +35,53 @@ const createUser = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
+const getUserAccount = (req, res) => {
+  const text = `SELECT accounts.*, users.email FROM ${schema}.users AS users INNER JOIN ${schema}.accounts AS accounts ON users.id = accounts.user_id WHERE users.id = $1 `
+  const values = [
+    req.body.user.id
+  ]
+  const thenFn = (results) => {
+    res.send(results.rows[0])
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const updateUsername = (req, res) => {
+  const text = `UPDATE ${schema}.accounts SET username = $2 WHERE id = $1`
+  const values = [
+    req.body.user.id,
+    req.body.user.username
+  ]
+  const thenFn = (results) => {
+    res.end()
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const updatePassword = (req, res) => {
+  const text = `UPDATE ${schema}.users SET password = crypt($3, gen_salt('bf')) WHERE id = $1 AND password = crypt($2, password)`
+  const values = [
+    req.body.user.user_id,
+    req.body.user.password,
+    req.body.user.newPassword
+  ]
+  const thenFn = (results) => {
+    res.send({rowCount: results.rowCount})
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
 exports.login = login
 exports.createUser = createUser
+exports.getUserAccount = getUserAccount
+exports.updatePassword = updatePassword
+exports.updateUsername = updateUsername

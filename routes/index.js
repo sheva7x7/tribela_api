@@ -30,4 +30,13 @@ module.exports = function(app) {
 
   app.route('/v1/campaignvoted')
     .post(campaignsApi.isCampaignVoted)
+
+  app.route('/v1/profile')
+    .post(usersApi.getUserAccount)
+
+  app.route('/v1/password')
+    .post(usersApi.updatePassword)
+
+  app.route('/v1/username')
+    .post(usersApi.updateUsername)
 }
