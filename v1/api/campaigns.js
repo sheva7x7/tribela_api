@@ -123,7 +123,7 @@ const isCampaignVoted = (req, res) => {
   ]
   const thenFn = (results) => {
     if (results.rows.length > 0) {
-      res.send(true)
+      res.send(results.rows[0])
     } else {
       res.send(false)
     }
