@@ -25,11 +25,17 @@ module.exports = function(app) {
   app.route('/v1/trendingcampaigns')
     .post(campaignsApi.retriveTrendingCampaigns)
 
+  app.route('/v1/featuredcampaigns')
+    .post(campaignsApi.retrieveFeaturedCampaigns)
+
   app.route('/v1/voting')
     .post(campaignsApi.voting)
 
   app.route('/v1/campaignvoted')
     .post(campaignsApi.isCampaignVoted)
+
+  app.route('/v1/campaignviews')
+    .post(campaignsApi.updateCampaignView)
 
   app.route('/v1/profile')
     .post(usersApi.getUserAccount)

@@ -80,6 +80,27 @@ const retrieveCampaignOptions = (req, res) => {
 const retriveTrendingCampaigns = (req, res) => {
   const text = `SELECT campaigns.*, SUM(vote_options.vote_count) AS total_vote_count FROM ${schema}.campaigns AS campaigns 
   INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id WHERE expiration_time >= CURRENT_TIMESTAMP
+  GROUP BY campaigns.id ORDER BY total_vote_count DESC, creation_time::DATE DESC, (expiration_time - CURRENT_TIMESTAMP) ASC LIMIT 20 OFFSET $1`
+  const values = [
+    req.body.offset || 0
+  ]
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No option found'})
+    }
+    else{
+      res.send(results.rows)
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const retrieveFeaturedCampaigns = (req, res) => {
+  const text = `SELECT campaigns.*, SUM(vote_options.vote_count) AS total_vote_count FROM ${schema}.campaigns AS campaigns 
+  INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id WHERE expiration_time >= CURRENT_TIMESTAMP
   GROUP BY campaigns.id ORDER BY creation_time::DATE DESC, total_vote_count DESC, (expiration_time - CURRENT_TIMESTAMP) ASC LIMIT 20 OFFSET $1`
   const values = [
     req.body.offset || 0
@@ -134,9 +155,26 @@ const isCampaignVoted = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
+const updateCampaignView = (req, res) => {
+  const text = `UPDATE ${schema}.campaigns SET no_of_views = no_of_views + 1 WHERE id = $1`
+  const values = [
+    req.body.campaign.id
+  ]
+  const thenFn = (results) => {
+    res.end()
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  console.log(values)
+  db.query(text, values, thenFn, catchFn)
+}
+
 exports.createCampaign = createCampaign
 exports.retrieveCampaignById = retrieveCampaignById
 exports.retrieveCampaignOptions = retrieveCampaignOptions
 exports.retriveTrendingCampaigns = retriveTrendingCampaigns
 exports.voting = voting
 exports.isCampaignVoted = isCampaignVoted
+exports.retrieveFeaturedCampaigns = retrieveFeaturedCampaigns
+exports.updateCampaignView = updateCampaignView
