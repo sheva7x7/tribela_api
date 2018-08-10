@@ -34,6 +34,9 @@ module.exports = function(app) {
   app.route('/v1/campaignvoted')
     .post(campaignsApi.isCampaignVoted)
 
+  app.route('/v1/votedcampaigns')
+    .post(campaignsApi.votedCampaignsList)
+
   app.route('/v1/campaignviews')
     .post(campaignsApi.updateCampaignView)
 
