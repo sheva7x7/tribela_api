@@ -13,6 +13,9 @@ module.exports = function(app) {
   app.route('/v1/newuser')
     .post(usersApi.createUser)
 
+  app.route('/v1/verifyuser')
+    .post(usersApi.verifyUser)
+
   app.route('/v1/newcampaign')
     .post(campaignsApi.createCampaign)
 
