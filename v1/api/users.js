@@ -92,7 +92,7 @@ const createUser = (req, res) => {
       fromAddress: "info@tribela.io",
       toAddress: req.body.user.email,
       content: `Dear user, <br><br>Stuff War rewards you when you win the vote. Let’s get started. <br><br>Please confirm your email address by 
-      clicking on this link: <br><br>${constants.BASE_URL}/email_verification/${validation_string}<br><br>Tribela`
+      clicking on this link: <br><br>${constants.BASE_URL}emailverification/${validation_string}<br><br>Tribela`
     }
     axios.post(`https://mail.zoho.com/api/accounts/${constants.EMAIL_ACCOUNT_ID}/messages`, data, {headers})
     res.end()
