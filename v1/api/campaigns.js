@@ -14,6 +14,7 @@ const createCampaign = (req, res) => {
     req.body.campaign.creator,
     moment().format(),
     moment(req.body.campaign.expiration_time).format(),
+    moment(req.body.campaign.launch_time).format(),
     req.body.campaign.category,
     0
   ]
@@ -25,7 +26,7 @@ const createCampaign = (req, res) => {
     }
   })
   const text = `WITH new_campaign AS (INSERT INTO ${schema}.campaigns (title, description, featured_image, 
-    creator, creation_time, expiration_time, category, no_of_views) VALUES ($1, $2, $3, $4, $5,$6, $7, $8) RETURNING id) INSERT INTO ${schema}.vote_options 
+    creator, creation_time, expiration_time, launch_time, category, no_of_views) VALUES ($1, $2, $3, $4, $5,$6, $7, $8, $9) RETURNING id) INSERT INTO ${schema}.vote_options 
     (campaign_id, option_no, description, vote_count) VALUES ${optionsText}`
   const thenFn = (results) => {
     res.end()
