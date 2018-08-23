@@ -19,6 +19,9 @@ module.exports = function(app) {
   app.route('/v1/newcampaign')
     .post(campaignsApi.createCampaign)
 
+  app.route('/v1/campaigninfo')
+    .post(campaignsApi.createCampaignInfo)
+
   app.route('/v1/campaign/:id')
     .get(campaignsApi.retrieveCampaignById)
 

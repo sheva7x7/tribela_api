@@ -73,14 +73,15 @@ const updateValidation = (res, login_id, result) => {
 
 const createUser = (req, res) => {
   const validation_string = uuid()
-  const text = `INSERT INTO ${schema}.users (login_id, email, password, created_on, validated, validation_string) VALUES ($1, $2, crypt($3, gen_salt('bf')), $4, $5, $6)`
+  const text = `INSERT INTO ${schema}.users (login_id, email, password, created_on, validated, validation_string, mailing_list) VALUES ($1, $2, crypt($3, gen_salt('bf')), $4, $5, $6, $7)`
   const values = [
     req.body.user.login_id,
     req.body.user.email,
     req.body.user.password,
     moment().format(),
     false,
-    validation_string
+    validation_string,
+    req.body.user.mailing_list
   ]
   const thenFn = (results) => {
     const headers = {

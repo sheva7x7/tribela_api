@@ -37,10 +37,39 @@ const createCampaign = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
+const createCampaignInfo = (req, res) => {
+  const campaignOptions = req.body.campaign.options
+  const optionsLength = campaignOptions.length
+  let text = `INSERT INTO ${schema}.campaign_info (campaign_id, option_id, description, option_gallery, creator, creation_time) VALUES `
+  const values = []
+  campaignOptions.forEach((option, i) => {
+    text += `($${values.length+1}, $${values.length+2}, $${values.length+3}, $${values.length+4}, $${values.length+5}, $${values.length+6})`
+    values.push(
+      option.campaign_id,
+      option.option_id,
+      option.description,
+      option.option_gallery,
+      option.creator,
+      moment().format()
+    )
+    if (i < optionsLength - 1){
+      text += ','
+    }
+  })
+  console.log(values, text)
+  const thenFn = (results) => {
+    res.end()
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
 const retrieveCampaignById = (req, res) => {
   const text = `SELECT campaigns.*, SUM(vote_options.vote_count) AS total_vote_count, array_to_json(array_agg(vote_options ORDER BY option_no)) 
   AS options FROM ${schema}.campaigns AS campaigns INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id 
-  WHERE campaigns.id = $1 GROUP BY campaigns.id`
+  WHERE campaigns.id = $1 AND campaigns.launch_time <= CURRENT_TIMESTAMP GROUP BY campaigns.id`
   const values = [
     req.params.id
   ]
@@ -80,7 +109,7 @@ const retrieveCampaignOptions = (req, res) => {
 const retriveTrendingCampaigns = (req, res) => {
   const text = `SELECT campaigns.*, SUM(vote_options.vote_count) AS total_vote_count, array_to_json(array_agg(vote_options ORDER BY option_no)) AS options
   FROM ${schema}.campaigns AS campaigns INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id WHERE expiration_time >= CURRENT_TIMESTAMP
-  GROUP BY campaigns.id ORDER BY total_vote_count DESC, creation_time::DATE DESC, (expiration_time - CURRENT_TIMESTAMP) ASC LIMIT 20 OFFSET $1`
+  AND  campaigns.launch_time <= CURRENT_TIMESTAMP GROUP BY campaigns.id ORDER BY total_vote_count DESC, creation_time::DATE DESC, (expiration_time - CURRENT_TIMESTAMP) ASC LIMIT 20 OFFSET $1`
   const values = [
     req.body.offset || 0
   ]
@@ -101,7 +130,7 @@ const retriveTrendingCampaigns = (req, res) => {
 const retrieveFeaturedCampaigns = (req, res) => {
   const text = `SELECT campaigns.*, SUM(vote_options.vote_count) AS total_vote_count, array_to_json(array_agg(vote_options ORDER BY option_no)) 
   AS options FROM ${schema}.campaigns AS campaigns INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id WHERE expiration_time >= CURRENT_TIMESTAMP
-  GROUP BY campaigns.id ORDER BY creation_time::DATE DESC, total_vote_count DESC, (expiration_time - CURRENT_TIMESTAMP) ASC LIMIT 20 OFFSET $1`
+  AND campaigns.launch_time <= CURRENT_TIMESTAMP GROUP BY campaigns.id ORDER BY creation_time::DATE DESC, total_vote_count DESC, (expiration_time - CURRENT_TIMESTAMP) ASC LIMIT 20 OFFSET $1`
   const values = [
     req.body.offset || 0
   ]
@@ -185,6 +214,7 @@ const votedCampaignsList = (req, res) => {
 }
 
 exports.createCampaign = createCampaign
+exports.createCampaignInfo = createCampaignInfo
 exports.retrieveCampaignById = retrieveCampaignById
 exports.retrieveCampaignOptions = retrieveCampaignOptions
 exports.retriveTrendingCampaigns = retriveTrendingCampaigns
