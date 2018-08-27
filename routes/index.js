@@ -22,6 +22,24 @@ module.exports = function(app) {
   app.route('/v1/campaigninfo')
     .post(campaignsApi.createCampaignInfo)
 
+  app.route('/v1/campaigninfo/:id')
+    .get(campaignsApi.retrieveCampaignInfo)
+
+  app.route('/v1/newcampaigncomment')
+    .post(campaignsApi.createCampaignComment)
+
+  app.route('/v1/campaigncomments')
+    .post(campaignsApi.retrieveRootCommentsByOption)
+
+  app.route('/v1/subcomments')
+    .post(campaignsApi.retrieveCampaignCommentsByRootId)
+
+  app.route('/v1/upvotecomment')
+    .post(campaignsApi.upvoteComment)
+
+  app.route('/v1/downvotecomment')
+    .post(campaignsApi.downvoteComment)
+
   app.route('/v1/campaign/:id')
     .get(campaignsApi.retrieveCampaignById)
 

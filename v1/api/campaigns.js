@@ -57,7 +57,6 @@ const createCampaignInfo = (req, res) => {
       text += ','
     }
   })
-  console.log(values, text)
   const thenFn = (results) => {
     res.end()
   }
@@ -88,6 +87,25 @@ const retrieveCampaignById = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
+const retrieveCampaignInfo = (req, res) => {
+  const text = `SELECT * FROM ${schema}.campaign_info WHERE option_id = $1 `
+  const values = [
+    req.params.id
+  ]
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No info found'})
+    }
+    else{
+      res.send(results.rows[0])
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
 const retrieveCampaignOptions = (req, res) => {
   const text = `SELECT * FROM ${schema}.vote_options WHERE campaign_id = $1 `
   const values = [
@@ -107,10 +125,81 @@ const retrieveCampaignOptions = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
+const createCampaignComment = (req, res) => {
+  const text = `INSERT INTO ${schema}.campaign_comments (campaign_id, option_id, root_id, parent_id, body, creator_id, creation_time, master_comment, is_root) VALUES
+  ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`
+  const values = [
+    req.body.comment.campaign_id,
+    req.body.comment.option_id,
+    req.body.comment.root_id || null,
+    req.body.comment.parent_id || null,
+    req.body.comment.body,
+    req.body.comment.creator_id,
+    moment().format(),
+    req.body.comment.master_comment || false,
+    req.body.comment.is_root || false,
+  ]
+  const thenFn = (results) => {
+    res.send(results.rows[0])
+  }
+  const catchFn = (error) => {
+    if (error.code === '23505'){
+      res.status(412).send({message: 'Cannot create'})
+    }
+    else {
+      res.status(500).send({message: 'DB error'})
+    }
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const retrieveRootCommentsByOption = (req, res) => {
+  const text = `SELECT comments.*, accounts.username FROM ${schema}.campaign_comments AS comments INNER JOIN 
+  ${schema}.accounts AS accounts ON comments.creator_id = accounts.id WHERE comments.option_id = $1 AND comments.is_root IS TRUE ORDER BY comments.master_comment DESC, 
+  comments.upvote DESC, comments.replies DESC, comments.downvote DESC, comments.creation_time DESC LIMIT 20 OFFSET $2 `
+  const values = [
+    req.body.option_id,
+    req.body.offset || 0
+  ]
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No comment found'})
+    }
+    else{
+      res.send(results.rows)
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const retrieveCampaignCommentsByRootId = (req, res) => {
+  const text = `SELECT comments.*, accounts.username FROM ${schema}.campaign_comments AS comments 
+  INNER JOIN ${schema}.accounts ON comments.creator_id = accounts.id AS accounts WHERE comments.root_id = $2 `
+  const values = [
+    req.body.root_id,
+    req.body.offset || 0
+  ]
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No comment found'})
+    }
+    else{
+      res.send(results.rows)
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
 const retriveTrendingCampaigns = (req, res) => {
   const text = `SELECT campaigns.*, SUM(vote_options.vote_count) AS total_vote_count, array_to_json(array_agg(vote_options ORDER BY option_no)) AS options
   FROM ${schema}.campaigns AS campaigns INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id WHERE expiration_time >= CURRENT_TIMESTAMP
-  AND  campaigns.launch_time <= CURRENT_TIMESTAMP GROUP BY campaigns.id ORDER BY total_vote_count DESC, creation_time::DATE DESC, (expiration_time - CURRENT_TIMESTAMP) ASC LIMIT 20 OFFSET $1`
+  AND campaigns.launch_time <= CURRENT_TIMESTAMP GROUP BY campaigns.id ORDER BY total_vote_count DESC, creation_time::DATE DESC, (expiration_time - CURRENT_TIMESTAMP) ASC LIMIT 20 OFFSET $1`
   const values = [
     req.body.offset || 0
   ]
@@ -196,7 +285,6 @@ const updateCampaignView = (req, res) => {
   const catchFn = (error) => {
     res.status(500).send({message: 'DB error'})
   }
-  console.log(values)
   db.query(text, values, thenFn, catchFn)
 }
 
@@ -214,8 +302,51 @@ const votedCampaignsList = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
+const upvoteComment = (req, res) => {
+  const text = `INSERT INTO ${schema}.campaign_comment_votes (comment_id, voter_id, vote) VALUES ($1, $2, $3)`
+  const values = [
+    req.body.comment_id,
+    req.body.voter_id,
+    1
+  ]
+  const thenFn = (results) => {
+    res.end()
+  }
+  const catchFn = (error) => {
+    if (error.code === '23505'){
+      res.status(412).send({message: 'Cannot create'})
+    }
+    else {
+      res.status(500).send({message: 'DB error'})
+    }
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const downvoteComment = (req, res) => {
+  const text = `INSERT INTO ${schema}.campaign_comment_votes (comment_id, voter_id, vote) VALUES ($1, $2, $3)`
+  const values = [
+    req.body.comment_id,
+    req.body.voter_id,
+    -1
+  ]
+  const thenFn = (results) => {
+    res.end()
+  }
+  const catchFn = (error) => {
+    if (error.code === '23505'){
+      res.status(412).send({message: 'Cannot create'})
+    }
+    else {
+      res.status(500).send({message: 'DB error'})
+    }
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
 exports.createCampaign = createCampaign
 exports.createCampaignInfo = createCampaignInfo
+exports.retrieveCampaignInfo = retrieveCampaignInfo
 exports.retrieveCampaignById = retrieveCampaignById
 exports.retrieveCampaignOptions = retrieveCampaignOptions
 exports.retriveTrendingCampaigns = retriveTrendingCampaigns
@@ -224,3 +355,8 @@ exports.isCampaignVoted = isCampaignVoted
 exports.retrieveFeaturedCampaigns = retrieveFeaturedCampaigns
 exports.updateCampaignView = updateCampaignView
 exports.votedCampaignsList = votedCampaignsList
+exports.createCampaignComment = createCampaignComment
+exports.retrieveCampaignCommentsByRootId = retrieveCampaignCommentsByRootId
+exports.retrieveRootCommentsByOption = retrieveRootCommentsByOption
+exports.upvoteComment = upvoteComment
+exports.downvoteComment = downvoteComment
