@@ -177,10 +177,9 @@ const retrieveRootCommentsByOption = (req, res) => {
 
 const retrieveCampaignCommentsByRootId = (req, res) => {
   const text = `SELECT comments.*, accounts.username FROM ${schema}.campaign_comments AS comments 
-  INNER JOIN ${schema}.accounts ON comments.creator_id = accounts.id AS accounts WHERE comments.root_id = $2 `
+  INNER JOIN ${schema}.accounts AS accounts ON comments.creator_id = accounts.id WHERE comments.root_id = $1 `
   const values = [
-    req.body.root_id,
-    req.body.offset || 0
+    req.body.root_id
   ]
   const thenFn = (results) => {
     if (_.isEmpty(results.rows)){
