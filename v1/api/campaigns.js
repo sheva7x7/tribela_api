@@ -1,7 +1,9 @@
 const _ = require('lodash')
 const db = require('../../db')
-const moment = require('moment')
-let schema = process.env.DATABASE_ENV === 'test' ? 'test' : 'public'
+const moment = require('moment-timezone')
+const schema = process.env.DATABASE_ENV === 'test' ? 'test' : 'public'
+
+moment.tz.setDefault("Asia/Singapore")
 
 const createCampaign = (req, res) => {
   const voteOptions = req.body.campaign.vote_options
@@ -59,6 +61,44 @@ const createCampaignInfo = (req, res) => {
   })
   const thenFn = (results) => {
     res.end()
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const retrieveCampaignByUser = (req, res) => {
+  const text = `SELECT campaigns.*, votes.option_id AS voted_option_id, SUM(vote_options.vote_count) AS total_vote_count, array_to_json(array_agg(vote_options ORDER BY option_no)) 
+  AS options FROM ${schema}.campaigns AS campaigns INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id 
+  INNER JOIN ${schema}.votes AS votes ON votes.campaign_id = campaigns.id WHERE campaigns.launch_time <= CURRENT_TIMESTAMP AND 
+  votes.voter_id = $1 GROUP BY campaigns.id, votes.id ORDER BY votes.vote_time DESC LIMIT 20 OFFSET $2`
+  const values = [
+    req.body.user.id,
+    req.body.offset
+  ]
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No campaign found'})
+    }
+    else{
+      res.send(results.rows)
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const retrieveUserCampaignCount = (req, res) => {
+  const text = `SELECT COUNT(*) FROM ${schema}.campaigns AS campaigns INNER JOIN ${schema}.votes AS votes ON 
+  votes.campaign_id = campaigns.id WHERE campaigns.launch_time <= CURRENT_TIMESTAMP AND votes.voter_id = $1 `
+  const values = [
+    req.body.user.id
+  ]
+  const thenFn = (results) => {
+    res.send(results.rows[0])
   }
   const catchFn = (error) => {
     res.status(500).send({message: 'DB error'})
@@ -359,3 +399,5 @@ exports.retrieveCampaignCommentsByRootId = retrieveCampaignCommentsByRootId
 exports.retrieveRootCommentsByOption = retrieveRootCommentsByOption
 exports.upvoteComment = upvoteComment
 exports.downvoteComment = downvoteComment
+exports.retrieveCampaignByUser = retrieveCampaignByUser
+exports.retrieveUserCampaignCount = retrieveUserCampaignCount

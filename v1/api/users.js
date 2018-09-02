@@ -3,8 +3,10 @@ const axios = require('axios')
 const uuid = require('uuid/v4')
 const db = require('../../db')
 const constants = require('../../utils/constants')
-const moment = require('moment')
+const moment = require('moment-timezone')
 const schema = process.env.DATABASE_ENV === 'test' ? 'test' : 'public'
+
+moment.tz.setDefault("Asia/Singapore")
 
 const login = (req,res) => {
   const text = `SELECT accounts.*, users.email, users.validated FROM ${schema}.users AS users INNER JOIN ${schema}.accounts AS accounts ON users.id = accounts.user_id WHERE users.login_id = $1 AND users.password = crypt($2, users.password)`

@@ -1,5 +1,6 @@
 const usersApi = require('../v1/api/users')
 const campaignsApi = require('../v1/api/campaigns')
+const walletApi = require('../v1/api/wallet')
 
 module.exports = function(app) {
   app.route('/')
@@ -33,6 +34,12 @@ module.exports = function(app) {
 
   app.route('/v1/subcomments')
     .post(campaignsApi.retrieveCampaignCommentsByRootId)
+
+  app.route('/v1/myvotedcampaigns')
+    .post(campaignsApi.retrieveCampaignByUser)
+
+  app.route('/v1/myvotedcampaignscount')
+    .post(campaignsApi.retrieveUserCampaignCount)
 
   app.route('/v1/upvotecomment')
     .post(campaignsApi.upvoteComment)
@@ -72,4 +79,7 @@ module.exports = function(app) {
 
   app.route('/v1/username')
     .post(usersApi.updateUsername)
+
+  app.route('/v1/newtransaction')
+    .post(walletApi.createTransaction)
 }
