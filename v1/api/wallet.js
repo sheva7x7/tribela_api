@@ -27,4 +27,25 @@ const createTransaction = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
+const retrieveTransactionsByUser = (req, res) => {
+  const text = `SELECT * FROM ${schema}.transactions WHERE sender_id = $1 OR receiver_id = $1 ORDER BY transaction_time DESC LIMIT 50 OFFSET $2 `
+  const values =[
+    req.body.user.id,
+    req.body.offset || 0
+  ]
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No transaction found'})
+    }
+    else{
+      res.send(results.rows)
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
 exports.createTransaction = createTransaction
+exports.retrieveTransactionsByUser = retrieveTransactionsByUser
