@@ -83,6 +83,9 @@ module.exports = function(app) {
   app.route('/v1/newtransaction')
     .post(walletApi.createTransaction)
 
+  app.route('/v1/newbatchtransactions')
+    .post(walletApi.createTransactions)
+
   app.route('/v1/usertranactions')
     .post(walletApi.retrieveTransactionsByUser)
 }

@@ -47,5 +47,35 @@ const retrieveTransactionsByUser = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
+createTransactions = (req,res) => {
+  const values = []
+  const n = req.body.transactions.length
+  let text = `INSERT INTO ${schema}.transactions (sender_id, receiver_id, points, transaction_type, campaign_id, comment_id, remarks, transaction_time) 
+  VALUES `
+  req.body.transactions.forEach((transaction, i) => {
+    text += `($${i*8+1}, $${i*8+2}, $${i*8+3}, $${i*8+4}, $${i*8+5}, $${i*8+6}, $${i*8+7}, $${i*8+8})`
+    if (i < n-1) {
+      text += ', '
+    }
+    values.push(transaction.sender_id)
+    values.push(transaction.receiver_id)
+    values.push(transaction.points)
+    values.push(transaction.transaction_type)
+    values.push(transaction.campaign_id)
+    values.push(transaction.comment_id)
+    values.push(transaction.remarks)
+    values.push(moment().format())
+  })
+  const thenFn = (results) => {
+    res.end()
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  console.log(text, values)
+  db.query(text, values, thenFn, catchFn)
+}
+
 exports.createTransaction = createTransaction
 exports.retrieveTransactionsByUser = retrieveTransactionsByUser
+exports.createTransactions = createTransactions
