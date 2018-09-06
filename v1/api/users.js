@@ -83,7 +83,7 @@ const createUser = (req, res) => {
     moment().format(),
     false,
     validation_string,
-    req.body.user.mailing_list
+    req.body.user.mailing_list || false
   ]
   const thenFn = (results) => {
     const headers = {
