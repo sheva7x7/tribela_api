@@ -3,6 +3,7 @@ const axios = require('axios')
 const uuid = require('uuid/v4')
 const db = require('../../db')
 const constants = require('../../utils/constants')
+const jwt = require('../../middleware/jwt')
 const moment = require('moment-timezone')
 const schema = process.env.DATABASE_ENV === 'test' ? 'test' : 'public'
 
@@ -20,6 +21,13 @@ const login = (req,res) => {
       res.status(401).send({message: 'Email not verified'})
     }
     else {
+      const userData = {
+        id: result.id,
+        email: result.email,
+        user_id: result.user_id
+      }
+      const token = jwt.createJWTToken(userData)
+      result.token = token
       res.send(result)
     }
   }
@@ -65,6 +73,13 @@ const updateValidation = (res, login_id, result) => {
     login_id
   ]
   const thenFn = (results) => {
+    const userData = {
+      id: result.id,
+      email: result.email,
+      user_id: result.user_id
+    }
+    const token = jwt.createJWTToken(userData)
+    result.token = token
     res.send(result)
   }
   const catchFn = (error) => {

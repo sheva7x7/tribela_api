@@ -1,6 +1,7 @@
 const usersApi = require('../v1/api/users')
 const campaignsApi = require('../v1/api/campaigns')
 const walletApi = require('../v1/api/wallet')
+const jwt = require('../middleware/jwt')
 
 module.exports = function(app) {
   app.route('/')
@@ -36,16 +37,16 @@ module.exports = function(app) {
     .post(campaignsApi.retrieveCampaignCommentsByRootId)
 
   app.route('/v1/myvotedcampaigns')
-    .post(campaignsApi.retrieveCampaignByUser)
+    .post(jwt.verifyJWT, campaignsApi.retrieveCampaignByUser)
 
   app.route('/v1/myvotedcampaignscount')
-    .post(campaignsApi.retrieveUserCampaignCount)
+    .post(jwt.verifyJWT, campaignsApi.retrieveUserCampaignCount)
 
   app.route('/v1/upvotecomment')
-    .post(campaignsApi.upvoteComment)
+    .post(jwt.verifyJWT, campaignsApi.upvoteComment)
 
   app.route('/v1/downvotecomment')
-    .post(campaignsApi.downvoteComment)
+    .post(jwt.verifyJWT, campaignsApi.downvoteComment)
 
   app.route('/v1/campaign/:id')
     .get(campaignsApi.retrieveCampaignById)
@@ -60,19 +61,19 @@ module.exports = function(app) {
     .post(campaignsApi.retrieveFeaturedCampaigns)
 
   app.route('/v1/voting')
-    .post(campaignsApi.voting)
+    .post(jwt.verifyJWT, campaignsApi.voting)
 
   app.route('/v1/campaignvoted')
-    .post(campaignsApi.isCampaignVoted)
+    .post(jwt.verifyJWT, campaignsApi.isCampaignVoted)
 
   app.route('/v1/votedcampaigns')
-    .post(campaignsApi.votedCampaignsList)
+    .post(jwt.verifyJWT, campaignsApi.votedCampaignsList)
 
   app.route('/v1/campaignviews')
     .post(campaignsApi.updateCampaignView)
 
   app.route('/v1/profile')
-    .post(usersApi.getUserAccount)
+    .post(jwt.verifyJWT, usersApi.getUserAccount)
 
   app.route('/v1/password')
     .post(usersApi.updatePassword)
@@ -87,5 +88,5 @@ module.exports = function(app) {
     .post(walletApi.createTransactions)
 
   app.route('/v1/usertranactions')
-    .post(walletApi.retrieveTransactionsByUser)
+    .post(jwt.verifyJWT, walletApi.retrieveTransactionsByUser)
 }
