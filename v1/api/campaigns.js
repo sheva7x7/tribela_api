@@ -235,10 +235,31 @@ const retrieveCampaignCommentsByRootId = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
-const retriveTrendingCampaigns = (req, res) => {
+const retrieveTrendingCampaigns = (req, res) => {
   const text = `SELECT campaigns.*, SUM(vote_options.vote_count) AS total_vote_count, array_to_json(array_agg(vote_options ORDER BY option_no)) AS options
   FROM ${schema}.campaigns AS campaigns INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id WHERE expiration_time >= CURRENT_TIMESTAMP
   AND campaigns.launch_time <= CURRENT_TIMESTAMP GROUP BY campaigns.id ORDER BY total_vote_count DESC, creation_time::DATE DESC, (expiration_time - CURRENT_TIMESTAMP) ASC LIMIT 20 OFFSET $1`
+  const values = [
+    req.body.offset || 0
+  ]
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No option found'})
+    }
+    else{
+      res.send(results.rows)
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
+const retrieveHofCampaigns = (req, res) => {
+  const text = `SELECT campaigns.*, SUM(vote_options.vote_count) AS total_vote_count, array_to_json(array_agg(vote_options ORDER BY option_no)) AS options
+  FROM ${schema}.campaigns AS campaigns INNER JOIN ${schema}.vote_options AS vote_options ON campaigns.id = vote_options.campaign_id WHERE expiration_time <= CURRENT_TIMESTAMP 
+  GROUP BY campaigns.id ORDER BY total_vote_count DESC, expiration_time::DATE DESC, no_of_views DESC LIMIT 20 OFFSET $1`
   const values = [
     req.body.offset || 0
   ]
@@ -388,7 +409,8 @@ exports.createCampaignInfo = createCampaignInfo
 exports.retrieveCampaignInfo = retrieveCampaignInfo
 exports.retrieveCampaignById = retrieveCampaignById
 exports.retrieveCampaignOptions = retrieveCampaignOptions
-exports.retriveTrendingCampaigns = retriveTrendingCampaigns
+exports.retrieveTrendingCampaigns = retrieveTrendingCampaigns
+exports.retrieveHofCampaigns = retrieveHofCampaigns
 exports.voting = voting
 exports.isCampaignVoted = isCampaignVoted
 exports.retrieveFeaturedCampaigns = retrieveFeaturedCampaigns

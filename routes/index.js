@@ -55,7 +55,10 @@ module.exports = function(app) {
     .get(campaignsApi.retrieveCampaignOptions)
 
   app.route('/v1/trendingcampaigns')
-    .post(campaignsApi.retriveTrendingCampaigns)
+    .post(campaignsApi.retrieveTrendingCampaigns)
+
+  app.route('/v1/hofcampaigns')
+    .post(campaignsApi.retrieveHofCampaigns)
 
   app.route('/v1/featuredcampaigns')
     .post(campaignsApi.retrieveFeaturedCampaigns)
