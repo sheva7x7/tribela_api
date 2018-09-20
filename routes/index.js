@@ -1,6 +1,7 @@
 const usersApi = require('../v1/api/users')
 const campaignsApi = require('../v1/api/campaigns')
 const walletApi = require('../v1/api/wallet')
+const articlesApi = require('../v1/api/articles')
 const jwt = require('../middleware/jwt')
 
 module.exports = function(app) {
@@ -92,4 +93,13 @@ module.exports = function(app) {
 
   app.route('/v1/usertranactions')
     .post(jwt.verifyJWT, walletApi.retrieveTransactionsByUser)
+
+  app.route('/v1/newarticle')
+    .post(articlesApi.createArticle)
+
+  app.route('/v1/announcements')
+    .post(articlesApi.retrieveAnnouncements)
+
+  app.route('/v1/article')
+    .post(articlesApi.retrieveArticle)
 }
