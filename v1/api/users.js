@@ -90,7 +90,7 @@ const updateValidation = (res, login_id, result) => {
 
 const createUser = (req, res) => {
   const validation_string = uuid()
-  const text = `INSERT INTO ${schema}.users (login_id, email, password, created_on, validated, validation_string, mailing_list) VALUES ($1, $2, crypt($3, gen_salt('bf')), $4, $5, $6, $7)`
+  const text = `INSERT INTO ${schema}.users (login_id, email, password, created_on, validated, validation_string, mailing_list, referrer_code) VALUES ($1, $2, crypt($3, gen_salt('bf')), $4, $5, $6, $7, $8)`
   const values = [
     req.body.user.login_id,
     req.body.user.email,
@@ -98,7 +98,8 @@ const createUser = (req, res) => {
     moment().format(),
     false,
     validation_string,
-    req.body.user.mailing_list || false
+    req.body.user.mailing_list || false,
+    req.body.user.referral_code || null
   ]
   const thenFn = (results) => {
     const headers = {
@@ -166,9 +167,24 @@ const updatePassword = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
+const retrieveReferralCode = (req, res) => {
+  const text = `SELECT referral_code FROM ${schema}.accounts WHERE id = $1 `
+  const values = [
+    req.body.user.id
+  ]
+  const thenFn = (results) => {
+    res.send(results.rows[0])
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
 exports.login = login
 exports.createUser = createUser
 exports.getUserAccount = getUserAccount
 exports.updatePassword = updatePassword
 exports.updateUsername = updateUsername
 exports.verifyUser = verifyUser
+exports.retrieveReferralCode = retrieveReferralCode

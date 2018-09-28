@@ -85,6 +85,9 @@ module.exports = function(app) {
   app.route('/v1/username')
     .post(usersApi.updateUsername)
 
+  app.route('/v1/referralcode')
+    .post(jwt.verifyJWT, usersApi.retrieveReferralCode)
+
   app.route('/v1/newtransaction')
     .post(walletApi.createTransaction)
 
