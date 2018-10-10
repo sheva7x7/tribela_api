@@ -103,6 +103,9 @@ module.exports = function(app) {
   app.route('/v1/announcements')
     .post(articlesApi.retrieveAnnouncements)
 
+  app.route('/v1/newsfeed')
+    .post(articlesApi.retrieveNewsFeed)
+
   app.route('/v1/article')
     .post(articlesApi.retrieveArticle)
 }

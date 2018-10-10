@@ -47,6 +47,23 @@ const retrieveAnnouncements = (req, res) => {
   db.query(text, values, thenFn, catchFn)
 }
 
+const retrieveNewsFeed = (req, res) => {
+  const text = `SELECT * FROM ${schema}.articles WHERE article_type = 2 AND expiration_time > CURRENT_TIMESTAMP ORDER BY publish_time DESC `
+  values = []
+  const thenFn = (results) => {
+    if (_.isEmpty(results.rows)){
+      res.status(600).send({message: 'No announcement found'})
+    }
+    else{
+      res.send(results.rows)
+    }
+  }
+  const catchFn = (error) => {
+    res.status(500).send({message: 'DB error'})
+  }
+  db.query(text, values, thenFn, catchFn)
+}
+
 const retrieveArticle = (req, res) => {
   const text = `SELECT * FROM ${schema}.articles WHERE id = $1`
   values = [
@@ -69,3 +86,4 @@ const retrieveArticle = (req, res) => {
 exports.createArticle = createArticle
 exports.retrieveAnnouncements = retrieveAnnouncements
 exports.retrieveArticle = retrieveArticle
+exports.retrieveNewsFeed = retrieveNewsFeed
